@@ -131,5 +131,48 @@ Once joined, you can check the cluster status on the master node with:
 ```
 kubectl get nodes
 ```
+Your cluster should look like this:
 
+![](pictures/kgetnodes.png)
 
+### Setup remote control (only for MacOS users)
+
+To manage your Raspberry Pi k3s cluster from your Mac, you first have to install kubectl with homebrew:
+
+```
+brew install kubectl
+```
+
+You can verify the installation with:
+
+```
+kubectl version --client
+```
+
+After installing kubectl you have to copy the kubeconfig from your master-node to your mac. The config is located at (on your Pi): /etc/rancher/k3s/k3s.yaml
+Make sure the ~/.kube directory and config file exists on your mac; if not, create it:
+
+```
+mkdir -p ~/.kube
+
+# create the config file on your mac
+touch ~/.kube/config
+```
+
+Copy the content of the /etc/rancher/k3s/k3s.yaml:
+
+```
+nano ~/.kube/config
+
+# Replace Server IP with the actual IP address of your master Raspberry Pi:
+# Find the line:
+server: https://127.0.0.1:6443
+# Change it to:
+server: https://<MASTER_IP>:6443
+# Save and close the file
+```
+
+Now you can test your connection with:
+```
+kubectl get nodes
+```
