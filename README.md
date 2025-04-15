@@ -72,7 +72,7 @@ Repeat this step for all other Raspberry Pis.
 
 ### Why k3s? (Talos vs k3s)
 
-Before setting up the cluster, I considered a few lightweight options for the setup. Talos OS and k3s made the shortlist.
+Before setting up the cluster, I considered a few lightweight options for the setup. [**Talos OS**](https://www.talos.dev) and [**k3s**](https://k3s.io) made the shortlist.
 
 Unfortunately, Talos OS currently doesn’t support the Raspberry Pi 5, and there’s no community workaround available either — so I went with k3s.
 However, a major advantage of k3s is that the nodes can also be used later for purposes other than Kubernetes. For example, for automation, Docker and so on.
@@ -175,4 +175,54 @@ server: https://<MASTER_IP>:6443
 Now you can test your connection with:
 ```
 kubectl get nodes
+```
+
+<br>
+
+> **_You're now ready to deploy things in Kubernetes!_**
+
+<br>
+
+# Storage
+
+Once you become more familiar with Kubernetes, you’ll quickly encounter the topic of persistent storage.
+The challenge with the current cluster setup is that a pod can only claim storage from the local disk of the node it’s running on.
+If the scheduler moves the pod to a different node (e.g., due to a node failure), the pod may no longer have access to its previously claimed storage.
+
+While it’s possible to use NFS as a shared storage solution, in this project we’re focusing solely on the Raspberry Pi cluster and assume that no external storage is available.
+
+According to the [CNCF landscape](https://www.cncf.io), there are several options to provide redundant, highly available storage within a Kubernetes cluster. Two popular choices for homelab setups like this are Rook Ceph and Longhorn.
+
+[**Rook Ceph**](https://rook.io) is a powerful, production-grade distributed storage system, but it requires more resources and is relatively complex to set up and maintain — especially on low-power devices like Raspberry Pis.
+
+[**Longhorn**](https://longhorn.io), on the other hand, is lightweight, easy to install, and specifically designed for cloud-native environments. It’s well-suited for small clusters and works reliably on ARM-based devices.
+
+That's why I went with Longhorn for this setup.
+
+## Deploying Longhorn
+
+According to the [**k3s-Longhorn**](https://docs.k3s.io/storage#setting-up-longhorn) documentation, you can install Longhorn with the following command:
+
+```
+kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.6.0/deploy/longhorn.yaml
+```
+
+Longhorn will be installed in the namespace longhorn-system.
+
+<br>
+
+> **_You’re now ready to create volumes using Longhorn!_**
+
+<br>
+
+There’s a quick example manifest in the storage/longhorn-volume-example.yaml file.
+To apply it, run:
+
+```
+kubectl apply -f longhorn-volume-example.yaml
+
+# Then confirm that the PV and PVC have been created:
+
+kubectl get pv
+kubectl get pvc
 ```
